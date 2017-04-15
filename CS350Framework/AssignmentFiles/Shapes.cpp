@@ -118,7 +118,6 @@ void Sphere::ComputePCA(const std::vector<Vector3>& points)
   Warn("Assignment2: Required function un-implemented");
 }
 
-
 bool Sphere::ContainsPoint(const Vector3& point)
 {
   return PointSphere(point, mCenter, mRadius);

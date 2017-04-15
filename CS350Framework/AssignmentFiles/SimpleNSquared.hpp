@@ -16,8 +16,8 @@ class NSquaredSpatialPartition : public SpatialPartition
 public:
   NSquaredSpatialPartition();
 
-  void InsertData(SpatialPartitionKey& key, SpatialPartitionData& data) override;
-  void UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data) override;
+  void InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data) override;
+  void UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data) override;
   void RemoveData(SpatialPartitionKey& key) override;
 
   void DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color = Vector4(1), int bitMask = 0) override;
@@ -41,8 +41,8 @@ class BoundingSphereSpatialPartition : public SpatialPartition
 public:
   BoundingSphereSpatialPartition();
 
-  void InsertData(SpatialPartitionKey& key, SpatialPartitionData& data) override;
-  void UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data) override;
+  void InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data) override;
+  void UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data) override;
   void RemoveData(SpatialPartitionKey& key) override;
 
   void DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color = Vector4(1), int bitMask = 0) override;

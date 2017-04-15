@@ -343,6 +343,56 @@ bool Startup(SDL_Window*& window, SDL_GLContext& glContext, int WindowWidth, int
   return true;
 }
 
+typedef std::unordered_map<std::string, std::string> ArgumentMap;
+
+// Simple command line argument parsing
+void ParseCommandLineArguments(int argc, char* argv[], int assignmentNumber, int testNumber, ArgumentMap& args, ArgumentMap& defaults)
+{
+  std::string previousArg = "";
+  for(int i = 3; i < argc; ++i)
+  {
+    std::string currentArg = argv[i];
+    if(currentArg.empty())
+      continue;
+
+    // If this argument starts with a '-' then it is a flag
+    if(currentArg[0] == '-')
+    {
+      // If there was a previous argument, that means we had a '-something' that had no value specified.
+      // Look-up the default value for this argument if it existed and add it to our argument results
+      if(!previousArg.empty())
+      {
+        std::string value;
+        auto it = defaults.find(previousArg);
+        if(it != defaults.end())
+          value = it->second;
+        args[previousArg] = value;
+      }
+      // Push on the current argument
+      previousArg = currentArg;
+    }
+    // Otherwise, this is an argument value for the previous argument flag
+    else
+    {
+      if(!previousArg.empty())
+      {
+        args[previousArg] = currentArg;
+        previousArg.clear();
+      }
+    }
+  }
+
+  // If we ended with a flag with no value then lookup the defaults
+  if(!previousArg.empty())
+  {
+    std::string value;
+    auto it = defaults.find(previousArg);
+    if(it != defaults.end())
+      value = it->second;
+    args[previousArg] = value;
+  }
+}
+
 //-----------------------------------------------------------------------------
 // Check to see if any unit tests should be run
 bool CheckForUnitTests(int argc, char *argv[])
@@ -363,19 +413,34 @@ bool CheckForUnitTests(int argc, char *argv[])
   int assignmentNumber = atoi(argv[1]);
   int testNumber = atoi(argv[2]);
 
-  std::string outFilePath = FormatString("Test%d_%d.txt", assignmentNumber, testNumber);
-  // The 3rd argument is an optional one specifying what the output file name should be for the unit tests
-  char* outFile = NULL;
-  if(argc >= 4 && argv[3] != NULL)
-    outFilePath = argv[3];
-
-  // Open the file we're writing to
-  FILE* file;
-  fopen_s(&file, outFilePath.c_str(), "w");
-
   // Bounds check the assignment number
   if(assignmentNumber < 0 || (int)mTestFns.size() < assignmentNumber)
     return false;
+
+  ArgumentMap args;
+  ArgumentMap defaults;
+  // Specify default arguments for the output files
+  defaults["-file"] = FormatString("Test%d_%d.txt", assignmentNumber, testNumber);
+  defaults["-time"] = FormatString("Timings%d_%d.txt", assignmentNumber, testNumber);
+  ParseCommandLineArguments(argc, argv, assignmentNumber, testNumber, args, defaults);
+
+  std::string outFilePath = FormatString("Test%d_%d.txt", assignmentNumber, testNumber);
+  auto fileArg = args.find("-file");
+  if(fileArg != args.end())
+    outFilePath = fileArg->second;
+
+  // Open the output file
+  FILE* file;
+  fopen_s(&file, outFilePath.c_str(), "w");
+
+  // If specified, open the output timings file
+  FILE* timings = nullptr;
+  auto timeArg = args.find("-time");
+  if(timeArg != args.end())
+  {
+    std::string timingsFilePath = timeArg->second;
+    fopen_s(&timings, timingsFilePath.c_str(), "w");
+  }
 
   AssignmentUnitTestList& list = mTestFns[assignmentNumber - 1];
   // Test -1 is special, it prints how many tests their are (so the unit tests can be more easily automated)
@@ -391,7 +456,7 @@ bool CheckForUnitTests(int argc, char *argv[])
     for(size_t i = 0; i < list.size(); ++i)
     {
       UnitTestWrapper& wrapper = list[i];
-      wrapper.mFn(wrapper.mTestName, -1, file);
+      wrapper.Run(file, timings);
     }
   }
   else
@@ -401,24 +466,36 @@ bool CheckForUnitTests(int argc, char *argv[])
     if(0 <= actualTestNumber && actualTestNumber < (int)list.size())
     {
       UnitTestWrapper& wrapper = list[actualTestNumber];
-      wrapper.Run(-1, file);
+      wrapper.Run(file, timings);
     }
   }
 
   fclose(file);
+  if(timings != nullptr)
+    fclose(timings);
   return true;
+}
+
+void EnableFpuExceptions()
+{
+  unsigned int currState;
+  _clearfp();
+  _controlfp_s(&currState, _EM_INEXACT | _EM_UNDERFLOW, _MCW_EM);
 }
 
 //-----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  //unsigned int currState;
-  //_clearfp();
-  //_controlfp_s(&currState, _EM_INEXACT | _EM_UNDERFLOW, _MCW_EM);
+  Application* application = new Application();
 
   // If we ran unit tests then just exit
   if(CheckForUnitTests(argc, argv))
+  {
+    // Only enable fpu exceptions when running unit tests to avoid opengl weirdness (for now)
+    EnableFpuExceptions();
+    delete application;
     return 0;
+  }
 
   // Starting width / height of the window
   int WindowWidth = 800;
@@ -440,7 +517,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  Application* application = new Application();
+  application->Initialize();
   // Communicate to GL/Tweakbar/etc... the window size
   Reshape(application, WindowWidth, WindowHeight);
   // Run the main message pump

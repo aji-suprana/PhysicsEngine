@@ -11,10 +11,27 @@ UnitTestWrapper::UnitTestWrapper(UnitTestFn fn, const char* testName)
 
 }
 
-void UnitTestWrapper::Run(int debuggingIndex, FILE* file)
+void UnitTestWrapper::Run(FILE* outputFile, FILE* timingsFile)
 {
   Application::mStatistics.Clear();
-  mFn(mTestName, debuggingIndex, file);
+  mFn(mTestName, outputFile);
+
+  if(timingsFile == NULL)
+    return;
+  
+  double runningAverage = 0.0;
+  size_t count = 10;
+  for(size_t i = 0; i < count; ++i)
+  {
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+    mFn(mTestName, nullptr);
+    QueryPerformanceCounter(&end);
+    runningAverage += (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
+  }
+  runningAverage /= count;
+  fprintf(timingsFile, "  Timing test (%s): %lf ms\n", mTestName, runningAverage);
 }
 
 //-----------------------------------------------------------------------------SimpleUnitTesterComponent
@@ -26,8 +43,7 @@ SimpleUnitTesterComponent::SimpleUnitTesterComponent(UnitTestFn testFn, const st
   
 void SimpleUnitTesterComponent::Update(float dt)
 {
-  int debuggingIndex = mOwner->mApplication->mDebuggingIndex;
-  mUnitTestFn(mTestName, debuggingIndex, NULL);
+  mUnitTestFn(mTestName, NULL);
 }
 
 //-----------------------------------------------------------------------------SimpleUnitTesterComponent
@@ -166,7 +182,7 @@ void PrintRayCastResults(SpatialPartition& spatialPartition, const Ray& ray, FIL
   sort(castResults.mResults.begin(), castResults.mResults.end());
 
   ray.DebugDraw(10.0f);
-  spatialPartition.DebugDraw(-1, Matrix4::cIdentity);
+  spatialPartition.DebugDraw(Application::mUnitTestValues.mDebugDrawLevel, Matrix4::cIdentity);
 
   if(outFile == NULL)
     return;
@@ -194,7 +210,7 @@ void PrintFrustumCastResults(SpatialPartition& spatialPartition, const Frustum& 
   sort(castResults.mResults.begin(), castResults.mResults.end());
 
   frustum.DebugDraw();
-  spatialPartition.DebugDraw(-1, Matrix4::cIdentity);
+  spatialPartition.DebugDraw(Application::mUnitTestValues.mDebugDrawLevel, Matrix4::cIdentity);
 
   if(outFile != NULL)
   {
@@ -236,7 +252,7 @@ void PrintSpatialPartitionSelfQuery(SpatialPartition& spatialPartition, FILE* ou
   spatialPartition.SelfQuery(results);
   std::sort(results.mResults.begin(), results.mResults.end());
 
-  spatialPartition.DebugDraw(-1, Matrix4::cIdentity);
+  spatialPartition.DebugDraw(Application::mUnitTestValues.mDebugDrawLevel, Matrix4::cIdentity);
 
   if(outFile != NULL)
   {

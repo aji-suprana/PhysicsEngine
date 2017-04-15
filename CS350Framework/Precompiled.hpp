@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <vector>
+#include <unordered_map>
 #include <windows.h>
 #include <gl/GLU.h>
 

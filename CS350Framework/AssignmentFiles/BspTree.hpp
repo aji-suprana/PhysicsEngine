@@ -26,6 +26,9 @@ class BspTree
 {
 public:
 
+  BspTree();
+  ~BspTree();
+
   // Splits the triangle by the given plane into 4 different lists. The front and back side list should be self explanatory (using the proper clipping table described in class).
   // The coplanar front list should be added to when a triangle is coplanar and the normal points the same direction as the plane normal. When the normal points in the opposite
   // direction then the coplanar back list should be added to. Note: When more than 3 points need to be added to a side you should split your polygon into a triangle using a
@@ -46,7 +49,7 @@ public:
 
   // Given a ray determine if and and what time the ray hits this tree. This should return the t-first value.
   // This method should be an optimized ray-cast that computes a tMin and tMax as discussed in class in order to not check every triangle!
-  bool RayCast(const Ray& ray, float& t, float planeEpsilon, float triExpansionEpsilon, int debuggingIndex);
+  bool RayCast(const Ray& ray, float& t, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex);
 
   // Just a simple helper to return all triangles in this tree.
   void AllTriangles(TriangleList& triangles) const;

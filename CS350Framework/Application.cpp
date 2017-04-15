@@ -68,6 +68,14 @@ Statistics::Statistics()
   Clear();
 }
 
+UnitTestValues::UnitTestValues()
+{
+  mDebugDraw = false;
+  mDebuggingIndex = -1;
+  mDebugDrawLevel = -1;
+  mMaxIterations = 100;
+}
+
 void Statistics::Clear()
 {
   mAabbAabbTests = 0;
@@ -107,12 +115,12 @@ void Statistics::DisplayProperties(TwBar* bar)
 
 //-----------------------------------------------------------------------------
 Statistics Application::mStatistics = Statistics();
+UnitTestValues Application::mUnitTestValues = UnitTestValues();
 
 Application::Application()
 {
   mAssignmentNumber = 0;
   gDebugDrawer->mApplication = this;
-  mMaxIterations = 20;
   mLightPosition = Vector3(0, 5, 0);
   mLightAmbient  = Vector4(1, 1, 1, 1);
   mLightDiffuse  = Vector4(1, 1, 1, 1);
@@ -120,17 +128,40 @@ Application::Application()
   mDragging = false;
   mMouseDown = false;
   mDynamicDebugDrawLevel = 0;
-  mDebuggingIndex = -1;
   mRefineCasts = false;
-  mDebugDraw = true;
-  mDrawGjk = false;
   mRunGjk = false;
   mBoundSphereType = BoundingSphereType::Centroid;
   mFrustumCull = true;
 
+  mUnitTestValues.mMaxIterations = 100;
+  mUnitTestValues.mDebuggingIndex = -1;
+  mUnitTestValues.mDebugDrawLevel = -1;
+  mUnitTestValues.mDebugDraw = true;
+
+  mDynamicBroadphase = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+Application::~Application()
+{
+  delete mDynamicBroadphase;
+  for(size_t i = 0; i < mLevels.size(); ++i)
+    delete mLevels[i];
+  for(size_t i = 0; i < mGameObjects.size(); ++i)
+    delete mGameObjects[i];
+  for(size_t i = 0; i < mMeshes.size(); ++i)
+    delete mMeshes[i];
+
+  for(size_t i = 0; i < mGizmos.size(); ++i)
+    delete mGizmos[i];
+  delete gDebugDrawer;
+}
+
+void Application::Initialize()
+{
   mGizmos.push_back(new TranslationGizmo());
   mActiveGizmo = mGizmos[0];
-  
+
 
   mDynamicBroadphase = new NSquaredSpatialPartition();
 
@@ -160,16 +191,16 @@ Application::Application()
   // Bind misc. tweakables (these are auto-changed when the assignment number is changed but can be further tweaked if desired)
   const char* miscPropertiesGroup = "group=MiscProperties";
   // Bind what spatial partion is being used
-  TwType spatialPartitionType = TwDefineEnumFromString("SpatialPartitionType", "NSquared,NSquaredSphere,NSquaredAabb,DynamicAabbTree");
+  TwType spatialPartitionType = TwDefineEnumFromString("SpatialPartitionType", "NSquared,NSquaredSphere,DynamicAabbTree");
   BindPropertyInGroup(mBar, Application, BroadphaseType, int, spatialPartitionType, miscPropertiesGroup);
   // Bind what method of bounding sphere computation is used
   mBoundingSphereTypeEnum = TwDefineEnumFromString("BoundingSphereType", "Centroid,Ritter,PCA");
   BindPropertyInGroup(mBar, Application, BoundingSphereType, int, mBoundingSphereTypeEnum, miscPropertiesGroup);
 
   // Bind other misc. properties about whether or not to perform a certain task
-  TwAddVarRW(mBar, "Debugging Index", TW_TYPE_INT32, &mDebuggingIndex, miscPropertiesGroup);
+  TwAddVarRW(mBar, "Debugging Index", TW_TYPE_INT32, &mUnitTestValues.mDebuggingIndex, miscPropertiesGroup);
   TwAddVarRW(mBar, "RefineCasts", TW_TYPE_BOOLCPP, &mRefineCasts, miscPropertiesGroup);
-  TwAddVarRW(mBar, "MaxIterations", TW_TYPE_INT32, &mMaxIterations, miscPropertiesGroup);
+  TwAddVarRW(mBar, "MaxIterations", TW_TYPE_INT32, &mUnitTestValues.mMaxIterations, miscPropertiesGroup);
   TwAddVarRW(mBar, "FrustumCulling", TW_TYPE_BOOLCPP, &mFrustumCull, miscPropertiesGroup);
   TwAddVarRW(mBar, "Gjk", TW_TYPE_BOOLCPP, &mRunGjk, miscPropertiesGroup);
   // Put all of these properties under a group that is closed by default
@@ -177,9 +208,8 @@ Application::Application()
 
   // Bind various debug drawing properties
   const char* debugDrawPropertiesGroup = "group=DebugDrawProperties";
-  TwAddVarRW(mBar, "DebugDraw", TW_TYPE_BOOLCPP, &mDebugDraw, debugDrawPropertiesGroup);
-  TwAddVarRW(mBar, "DrawLevel", TW_TYPE_INT32, &mDynamicDebugDrawLevel, debugDrawPropertiesGroup);
-  TwAddVarRW(mBar, "DrawGjk", TW_TYPE_BOOLCPP, &mDrawGjk, debugDrawPropertiesGroup);
+  TwAddVarRW(mBar, "DebugDraw", TW_TYPE_BOOLCPP, &mUnitTestValues.mDebugDraw, debugDrawPropertiesGroup);
+  TwAddVarRW(mBar, "DrawLevel", TW_TYPE_INT32, &mUnitTestValues.mDebugDrawLevel, debugDrawPropertiesGroup);
   // Put all of these properties under a group that is closed by default
   TwDefine("Application/DebugDrawProperties label=DebugDrawProperties opened=false");
 
@@ -187,7 +217,7 @@ Application::Application()
 
   mStatistics.DisplayProperties(mStatisticsBar);
 
-  LoadMeshes(); 
+  LoadMeshes();
 
   mLevels.push_back(new Level1());
   mLevels.push_back(new BigLevel());
@@ -210,24 +240,8 @@ Application::Application()
   BindPropertyInGroup(mBar, Application, Level, int, mLevelTypesEnum, "");
 
   ChangeLevel(0);
-  
+
   SetAssignmentNumber(0);
-}
-
-//-----------------------------------------------------------------------------
-Application::~Application()
-{
-  delete mDynamicBroadphase;
-  for(size_t i = 0; i < mLevels.size(); ++i)
-    delete mLevels[i];
-  for(size_t i = 0; i < mGameObjects.size(); ++i)
-    delete mGameObjects[i];
-  for(size_t i = 0; i < mMeshes.size(); ++i)
-    delete mMeshes[i];
-
-  for(size_t i = 0; i < mGizmos.size(); ++i)
-    delete mGizmos[i];
-  delete gDebugDrawer;
 }
 
 std::string Application::GetApplicationDirectory()
@@ -450,7 +464,9 @@ Ray Application::GetRayFromScreenCoords(const Math::Vector2& screenPos)
 void Application::Update(float frameTime)
 {
   mStatistics = Statistics();
-  mStatistics.mFps = 1 / frameTime;
+  mStatistics.mFps = 0;
+  if(frameTime != 0)
+    mStatistics.mFps = 1 / frameTime;
 
   gDebugDrawer->Update(frameTime);
   mActiveGizmo->OnUpdate(this, frameTime);
@@ -531,7 +547,7 @@ void Application::Update(float frameTime)
     Gjk gjk;
     Gjk::CsoPoint closestPoints;
     float epsilon = 0.001f;
-    if(mRunGjk && gjk.Intersect(&shape0, &shape1, mMaxIterations, closestPoints, epsilon, mDebuggingIndex, mDrawGjk))
+    if(mRunGjk && gjk.Intersect(&shape0, &shape1, mUnitTestValues.mMaxIterations, closestPoints, epsilon, mUnitTestValues.mDebuggingIndex, mUnitTestValues.mDebugDraw))
     {
       model0->mOverlap = model1->mOverlap = 2;
     }
@@ -554,7 +570,6 @@ void Application::SetAssignmentNumber(const int& assignmentNumber)
   {
     mFrustumCull = false;
     mRefineCasts = false;
-    mDrawGjk = false;
     mRunGjk = false;
     SetBroadphaseType(SpatialPartitionTypes::NSquared);
   }
@@ -563,7 +578,6 @@ void Application::SetAssignmentNumber(const int& assignmentNumber)
   {
     mRefineCasts = false;
     mFrustumCull = false;
-    mDrawGjk = false;
     mRunGjk = false;
     SetBroadphaseType(SpatialPartitionTypes::NSquaredSphere);
   }
@@ -572,7 +586,6 @@ void Application::SetAssignmentNumber(const int& assignmentNumber)
   {
     mFrustumCull = true;
     mRefineCasts = true;
-    mDrawGjk = false;
     mRunGjk = false;
     SetBroadphaseType(SpatialPartitionTypes::AabbTree);
   }
@@ -581,7 +594,6 @@ void Application::SetAssignmentNumber(const int& assignmentNumber)
   {
     mFrustumCull = true;
     mRefineCasts = true;
-    mDrawGjk = false;
     mRunGjk = false;
     SetBroadphaseType(SpatialPartitionTypes::AabbTree);
   }
@@ -590,7 +602,6 @@ void Application::SetAssignmentNumber(const int& assignmentNumber)
   {
     mFrustumCull = true;
     mRefineCasts = true;
-    mDrawGjk = true;
     mRunGjk = true;
     SetBroadphaseType(SpatialPartitionTypes::AabbTree);
   }
@@ -700,7 +711,7 @@ void Application::Draw()
       GameObject* gameObject = model->mOwner;
       model->Draw();
 
-      if(mDebugDraw)
+      if(mUnitTestValues.mDebugDraw)
         gameObject->DebugDraw();
     }
   }
@@ -714,15 +725,15 @@ void Application::Draw()
       if(model != nullptr)
         model->Draw();
 
-      if(mDebugDraw)
+      if(mUnitTestValues.mDebugDraw)
         gameObject->DebugDraw();
     }
   }
 
-  if(mDebugDraw)
+  if(mUnitTestValues.mDebugDraw)
   {
     Matrix4 transform = Matrix4::cIdentity;
-    mDynamicBroadphase->DebugDraw(mDynamicDebugDrawLevel, transform);
+    mDynamicBroadphase->DebugDraw(mUnitTestValues.mDebugDrawLevel, transform);
   }
 
   glDisable (GL_LIGHTING);

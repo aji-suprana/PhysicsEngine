@@ -57,6 +57,16 @@ struct Statistics
   size_t mSelfCollisionsCount;
 };
 
+struct UnitTestValues
+{
+  UnitTestValues();
+
+  int mDebuggingIndex;
+  int mDebugDrawLevel;
+  int mMaxIterations;
+  bool mDebugDraw;
+};
+
 namespace BoundingSphereType
 {
   enum {Centroid, RitterSphere, PCA};
@@ -67,11 +77,10 @@ namespace BoundingSphereType
 class Application
 {
 public:
-  // Constructor
   Application();
-
-  // Destructor
   ~Application();
+
+  void Initialize();
 
   std::string GetApplicationDirectory();
   void CreateCubeMesh();
@@ -158,7 +167,6 @@ public:
   int mAssignmentNumber;
   Vector2 mSize;
   int mDynamicDebugDrawLevel;
-  int mDebuggingIndex;
   bool mDragging;
   bool mMouseDown;
   bool mRefineCasts;
@@ -177,13 +185,11 @@ public:
   TwType mBoundingSphereTypeEnum;
   int mBoundSphereType;
 
-  int mMaxIterations;
-  bool mDebugDraw;
-  bool mDrawGjk;
   bool mRunGjk;
   int mCurrentLevelIndex;
   void ChangeLevel(int levelIndex);
 
   static Statistics mStatistics;
+  static UnitTestValues mUnitTestValues;
   bool mFrustumCull;
 };

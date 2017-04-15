@@ -12,7 +12,7 @@ NSquaredSpatialPartition::NSquaredSpatialPartition()
   mType = SpatialPartitionTypes::NSquared;
 }
 
-void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   // Doing this lazily (and bad, but it's n-squared...).
   // Just store as the key what the client data is so we can look it up later.
@@ -20,7 +20,7 @@ void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, SpatialParti
   mData.push_back(data.mClientData);
 }
 
-void NSquaredSpatialPartition::UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void NSquaredSpatialPartition::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   // Nothing to do here, update doesn't do anything
 }
@@ -99,12 +99,12 @@ BoundingSphereSpatialPartition::BoundingSphereSpatialPartition()
   mType = SpatialPartitionTypes::NSquaredSphere;
 }
 
-void BoundingSphereSpatialPartition::InsertData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void BoundingSphereSpatialPartition::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   Warn("Assignment2: Required function un-implemented");
 }
 
-void BoundingSphereSpatialPartition::UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void BoundingSphereSpatialPartition::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   Warn("Assignment2: Required function un-implemented");
 }

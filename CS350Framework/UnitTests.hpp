@@ -12,7 +12,7 @@
 #include <algorithm>
 #include "Application.hpp"
 
-typedef void(*UnitTestFn)(const std::string& testName, int debuggingIndex, FILE* file);
+typedef void(*UnitTestFn)(const std::string& testName, FILE* file);
 
 // Simple class that wraps the function pointer for a unit test.
 // Makes it easier to pass in the test name and to clear statistics between each test run.
@@ -21,7 +21,7 @@ struct UnitTestWrapper
   UnitTestWrapper() {}
   UnitTestWrapper(UnitTestFn fn, const char* testName);
 
-  void Run(int debuggingIndex, FILE* file);
+  void Run(FILE* outputFile, FILE* timingsFile);
 
   UnitTestFn mFn;
   const char* mTestName;

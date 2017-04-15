@@ -68,6 +68,8 @@ public:
 class Component
 {
 public:
+  virtual ~Component() {};
+
   virtual const char* GetName() = 0;
   // Some time has passed, run update logic if desired.
   virtual void Update(float dt) {};

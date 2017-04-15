@@ -17,12 +17,12 @@ DynamicAabbTree::~DynamicAabbTree()
 {
 }
 
-void DynamicAabbTree::InsertData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   Warn("Assignment3: Required function un-implemented");
 }
 
-void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data)
+void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
   Warn("Assignment3: Required function un-implemented");
 }

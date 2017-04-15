@@ -9,11 +9,11 @@
     <IntDir>$(SolutionDir)\Build\Int\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-	<UseDebugLibraries>true</UseDebugLibraries>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-	<UseDebugLibraries>false</UseDebugLibraries>
-	<WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

@@ -10,6 +10,7 @@
 #include "DynamicAabbTree.hpp"
 #include "BspTree.hpp"
 
+
 void InitializeAssignment4Tests()
 {
   mTestFns.push_back(AssignmentUnitTestList());
