@@ -155,6 +155,11 @@ void PrintTestHeader(FILE* outFile, const std::string& testName)
     fprintf(outFile, "%s\n", testName.c_str());
     fprintf(outFile, "////////////////////////////////////////////////////////////\n");
   }
+
+  //printf( "\n");
+  //printf( "////////////////////////////////////////////////////////////\n");
+  //printf( "%s\n", testName.c_str());
+  //printf( "////////////////////////////////////////////////////////////\n");
 }
 
 void PrintRayCastResults(SpatialPartition& spatialPartition, const Ray& ray, FILE* outFile)

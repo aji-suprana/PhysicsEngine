@@ -4,4 +4,7 @@
     <ShowAllFiles>false</ShowAllFiles>
     <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerCommandArguments>1 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>

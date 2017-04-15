@@ -14,8 +14,9 @@ class Level1 : public Level
 {
   void Load(Application* application) override
   {
-    application->CreateObject("Cube1", application->mMeshes[0], Vector3(1.0f), Math::Quaternion::cIdentity, Vector3(0.5f, 0.5f, 0));
-    application->CreateObject("Cube2", application->mMeshes[0], Vector3(1.0f), Math::Quaternion::cIdentity, Vector3(0,-0.5f, 0));
+    //MODIFIED: AJI
+    //application->CreateObject("Cube1", application->mMeshes[0], Vector3(1.0f), Math::Quaternion::cIdentity, Vector3(0.5f, 0.5f, 0));
+    //application->CreateObject("Cube2", application->mMeshes[0], Vector3(1.0f), Math::Quaternion::cIdentity, Vector3(0,-0.5f, 0));
   }
 
   std::string GetName() const override
