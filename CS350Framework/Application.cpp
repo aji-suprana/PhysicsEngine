@@ -72,7 +72,7 @@ UnitTestValues::UnitTestValues()
 {
   mDebugDraw = false;
   mDebuggingIndex = -1;
-  mDebugDrawLevel = -1;
+  mDebugDrawLevel = 0;
   mMaxIterations = 100;
 }
 

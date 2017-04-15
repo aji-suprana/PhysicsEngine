@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Shapes.hpp"
-
+#include <vector>
 typedef std::vector<Triangle> TriangleList;
 
 // Result data for the bsp tree. Should be filled out with all of the triangles at the given tree depth.
@@ -74,4 +74,43 @@ public:
   void DebugDraw(int level, const Vector4& color, int bitMask = 0);
 
   // Add your implementation here
+  struct Node
+  {
+    Node* front;
+    Node* back;
+
+    TriangleList n_tris;
+    Plane n_splitPlane;
+
+    void ClipTo(TriangleList& tris, float eps);
+    void ClipTo(Node* tris, float eps);
+  };
+
+  Node* NodeRoot;
+  
+
+  struct PointStruct
+  {
+    std::vector<Vector3> f;
+    std::vector<Vector3> b;
+    std::vector<Vector3> cf;
+    std::vector<Vector3> cb;
+  };
+
+  static void ComputeCoplanar(const Plane& p, const Triangle& t, PointStruct& pts);
+  Node* rConstruct(const TriangleList& triangles, float k, float epsilon);
+  Node* CreateNode();
+  bool RayCast(Node* node, const Ray& ray, float& t, float epsilon, float trieps);
+  void Traverse(Node* node, TriangleList& tl) const;
+  static bool FindDuplicate(const Triangle& t);
+  static void ComputeEdge(const Plane& p, const Vector3& p1, const Vector3& p2, PointStruct& pts, float epsilon);
+  void Invert(Node* node);
+  static void ComputeFront(const Plane& p, const Triangle& t, PointStruct& pts);
+
+  static void CreateTriangle(TriangleList& cfront, TriangleList& cback, TriangleList& front, TriangleList& back, PointStruct& pts);
+  static void CreateTriangle(TriangleList& tl, std::vector<Vector3>& pts);
+
+  static void ComputeBack(const Plane& p, const Triangle& t, PointStruct& pts);
+
+  void FilloutData(std::vector<BspTreeQueryData>& results, Node* node, int depth) const;
 };
