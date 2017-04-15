@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "Precompiled.hpp"
 
+
 //-----------------------------------------------------------------------------SupportShape
 Vector3 SupportShape::GetCenter(const std::vector<Vector3>& localPoints, const Matrix4& transform) const
 {
@@ -99,7 +100,6 @@ Vector3 ObbSupportShape::GetCenter() const
 Vector3 ObbSupportShape::Support(const Vector3& worldDirection) const
 {
   /******Student:Assignment5******/
-  // Note: A unit obb spans from [-0.5, to 0.5]. Make sure to properly account for this.
   Warn("Assignment5: Required function un-implemented");
   return Vector3::cZero;
 }
@@ -111,6 +111,7 @@ void ObbSupportShape::DebugDraw(const Vector4& color) const
   shape.Color(color);
   shape.SetTransform(transform);
 }
+
 
 //------------------------------------------------------------ Voronoi Region Tests
 VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& p0,

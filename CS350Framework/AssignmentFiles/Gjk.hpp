@@ -16,7 +16,7 @@ class Model;
 class SupportShape
 {
 public:
-  virtual ~SupportShape() {};
+
   virtual Vector3 GetCenter() const = 0;
   virtual Vector3 Support(const Vector3& worldDirection) const = 0;
   virtual void DebugDraw(const Vector4& color = Vector4::cZero) const = 0;
@@ -65,8 +65,6 @@ public:
 };
 
 //-----------------------------------------------------------------------------ObbSupportShape
-/// Support shape for an oriented bounding box. Note: a box of scale 1 has a "radius" of 0.5.
-/// That is the box spans [-0.5, 0.5]. Make sure to account for this when writing your support function.
 class ObbSupportShape : public SupportShape
 {
 public:

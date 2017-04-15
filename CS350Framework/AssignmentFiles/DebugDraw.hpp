@@ -69,7 +69,7 @@ public:
   DebugShape& DrawPlane(const Plane& plane, float sizeX, float sizeY);
   DebugShape& DrawQuad(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3);
   DebugShape& DrawFrustum(const Frustum& frustum);
-
+  void GenerateLineSegements(std::vector<Vector3>& points, DebugShape& shape);
 private:
   friend Application;
 

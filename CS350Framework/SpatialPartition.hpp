@@ -134,9 +134,9 @@ public:
 
   // Insert the given data into the spatial partition and sets the key to
   // be whatever data is needed to efficiently find this object for subsequent updates/removals
-  virtual void InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data) = 0;
+  virtual void InsertData(SpatialPartitionKey& key,  SpatialPartitionData& data) = 0;
   // Update the object represented by the key with the new data. This happens when an object moves.
-  virtual void UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data) = 0;
+  virtual void UpdateData(SpatialPartitionKey& key,  SpatialPartitionData& data) = 0;
   // Remove the object represented by the key from this spatial partition.
   virtual void RemoveData(SpatialPartitionKey& key) = 0;
 

@@ -11,14 +11,6 @@ BspTreeQueryData::BspTreeQueryData()
   mDepth = 0;
 }
 
-BspTree::BspTree()
-{
-}
-
-BspTree::~BspTree()
-{
-}
-
 void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleList& coplanarFront, TriangleList& coplanarBack, TriangleList& front, TriangleList& back, float epsilon)
 {
   /******Student:Assignment4******/
@@ -45,7 +37,7 @@ void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
   Warn("Assignment4: Required function un-implemented");
 }
 
-bool BspTree::RayCast(const Ray& ray, float& t, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
+bool BspTree::RayCast(const Ray& ray, float& t, float planeEpsilon, float triExpansionEpsilon, int debuggingIndex)
 {
   /******Student:Assignment4******/
   Warn("Assignment4: Required function un-implemented");

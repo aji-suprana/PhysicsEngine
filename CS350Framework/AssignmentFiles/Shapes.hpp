@@ -130,7 +130,7 @@ public:
   Plane(const Vector3& p0, const Vector3& p1, const Vector3& p2);
   // Create the plane from a point and a normal
   Plane(const Vector3& normal, const Vector3& point);
-
+  Plane(Math::Vector4 d) {  mData = d;}
   // Create a plane from a triangle. The plane's normal should be normalized.
   void Set(const Vector3& p0, const Vector3& p1, const Vector3& p2);
   // Create a plane from a point and a normal. The plane's normal should be normalized.

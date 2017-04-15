@@ -12,7 +12,7 @@ NSquaredSpatialPartition::NSquaredSpatialPartition()
   mType = SpatialPartitionTypes::NSquared;
 }
 
-void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
+void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, SpatialPartitionData& data)
 {
   // Doing this lazily (and bad, but it's n-squared...).
   // Just store as the key what the client data is so we can look it up later.
@@ -20,7 +20,7 @@ void NSquaredSpatialPartition::InsertData(SpatialPartitionKey& key, const Spatia
   mData.push_back(data.mClientData);
 }
 
-void NSquaredSpatialPartition::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
+void NSquaredSpatialPartition::UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data)
 {
   // Nothing to do here, update doesn't do anything
 }
@@ -99,42 +99,118 @@ BoundingSphereSpatialPartition::BoundingSphereSpatialPartition()
   mType = SpatialPartitionTypes::NSquaredSphere;
 }
 
-void BoundingSphereSpatialPartition::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
+void BoundingSphereSpatialPartition::InsertData(SpatialPartitionKey& key, SpatialPartitionData& data)
 {
-  Warn("Assignment2: Required function un-implemented");
+  //check if there were anything been removed
+  if (removed.empty())
+  {
+    key.mUIntKey = mData.size();
+    mData.push_back(&data);
+  }
+  //else insert to the idx that exist in removed
+  else
+  {
+    mData[removed.front()] = &data;
+    key.mUIntKey = removed.front();
+    removed.pop_front();
+  }
 }
 
-void BoundingSphereSpatialPartition::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
+void BoundingSphereSpatialPartition::UpdateData(SpatialPartitionKey& key, SpatialPartitionData& data)
 {
-  Warn("Assignment2: Required function un-implemented");
+  //I don't need to update the data, because the data that is inserted is a pointer to the original data
+  //assuming there will be a garbage manager for all boundingAABB and boundingSphere
 }
 
 void BoundingSphereSpatialPartition::RemoveData(SpatialPartitionKey& key)
 {
-  Warn("Assignment2: Required function un-implemented");
+  //add current key
+  mData[key.mUIntKey] = nullptr;
+  removed.push_back(key.mUIntKey);
 }
 
 void BoundingSphereSpatialPartition::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
 {
-  Warn("Assignment2: Required function un-implemented");
+  for (auto it: mData)
+  {
+    if (it == nullptr)
+      continue;
+
+    it->mBoundingSphere.DebugDraw().SetMaskBit(bitMask);
+    it->mBoundingSphere.DebugDraw().SetTransform(transform);
+    it->mBoundingSphere.DebugDraw().Color(color);
+    gDebugDrawer->DrawSphere(it->mBoundingSphere);
+  }
 }
 
 void BoundingSphereSpatialPartition::CastRay(const Ray& ray, CastResults& results)
 {
-  Warn("Assignment2: Required function un-implemented");
+  for (auto it : mData)
+  {
+    if (it == nullptr)
+      break;;
+    float t = 0;
+    if (RaySphere(ray.mStart, ray.mDirection, it->mBoundingSphere.mCenter, it->mBoundingSphere.mRadius, t))
+    {
+      CastResult curResult;
+      curResult.mTime = t;
+      curResult.mClientData = it->mClientData;
+      results.AddResult(curResult);
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::CastFrustum(const Frustum& frustum, CastResults& results)
 {
-  Warn("Assignment2: Required function un-implemented");
+  for (auto it : mData)
+  {
+    if (it == nullptr)
+      break;;
+    size_t axis;
+
+    IntersectionType::Type intersectType = FrustumSphere(frustum.GetPlanes(), it->mBoundingSphere.mCenter, it->mBoundingSphere.mRadius, axis);
+    if(intersectType == IntersectionType::Inside || intersectType == IntersectionType::Overlaps)
+    {
+      CastResult curResult;
+      curResult.mTime = 0;
+      curResult.mClientData = it->mClientData;
+      results.AddResult(curResult);
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::SelfQuery(QueryResults& results)
 {
-  Warn("Assignment2: Required function un-implemented");
+  for (unsigned i = 0; i < mData.size(); ++i)
+  {
+    SpatialPartitionData it1 = *mData[i];
+    for (unsigned j= i; j < mData.size(); ++j)
+    {
+      if (i == j)
+        continue;
+      SpatialPartitionData it2 = *mData[j];
+
+      const Sphere& sphere0 = it1.mBoundingSphere;
+      const Sphere& sphere1 = it2.mBoundingSphere;
+
+      if (SphereSphere(sphere0.mCenter, sphere0.mRadius, sphere1.mCenter, sphere1.mRadius))
+      {
+        results.AddResult(QueryResult(it1.mClientData, it2.mClientData));
+      }
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::FilloutData(std::vector<SpatialPartitionQueryData>& results) const
 {
-  Warn("Assignment2: Required function un-implemented");
+  for (auto it : mData)
+  {
+    if (it == nullptr)
+      continue;
+
+    SpatialPartitionQueryData spData;
+    spData.mClientData = it->mClientData;
+    spData.mBoundingSphere = it->mBoundingSphere;
+    results.push_back(spData);
+  }
 }
